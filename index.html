@@ -3,286 +3,592 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>e-LIS - ระบบสารสนเทศเพื่อการบริหารสินเชื่อ</title>
+    <title>e-Lending Information System (e-LIS)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
     <style>
-        body {
-            font-family: 'TH Sarabun PSK', 'Sarabun', sans-serif;
-            font-size: 1.15rem; /* ปรับขนาดฟอนต์สารบรรณให้อ่านง่าย */
-        }
+        body { font-family: 'TH Sarabun PSK', 'Sarabun', sans-serif; font-size: 1.15rem; }
+        .timeline-line { position: absolute; top: 20px; left: 0; right: 0; height: 4px; background-color: #cbd5e1; z-index: 0; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
-    <div id="loginPage" class="flex min-h-screen items-center justify-center p-4">
-        <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-md border border-slate-100">
+    <nav class="bg-blue-950 text-white px-6 py-4 shadow-md flex justify-between items-center hidden" id="mainNav">
+        <div class="flex items-center gap-3">
+            <span class="text-2xl font-bold tracking-wider text-amber-400"><i class="fa-solid fa-building-columns"></i> e-LIS</span>
+            <span class="text-xs bg-blue-800 px-2 py-0.5 rounded border border-blue-700" id="roleBadge">ผู้ใช้งาน</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-sm" id="userDisplay">---</span>
+            <button onclick="logout()" class="text-sm bg-red-700 hover:bg-red-800 px-3 py-1.5 rounded transition">
+                <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
+            </button>
+        </div>
+    </nav>
+
+    <div id="loginView" class="flex min-h-screen items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-slate-200">
             <div class="text-center mb-8">
-                <div class="text-blue-900 text-4xl font-bold tracking-wider mb-2">
-                    <i class="fa-solid fa-file-invoice-dollar mr-2"></i>e-LIS
-                </div>
-                <div class="text-slate-500 text-sm tracking-wide uppercase">e-Lending Information System</div>
-                <div class="text-slate-600 mt-1 font-medium">ระบบสารสนเทศเพื่อการบริหารสินเชื่อ</div>
+                <div class="text-blue-950 text-4xl font-bold mb-2"><i class="fa-solid fa-file-invoice-dollar text-amber-500"></i> e-LIS</div>
+                <div class="text-slate-500 text-xs tracking-wider uppercase">e-Lending Information System</div>
+                <div class="text-slate-700 mt-2 font-semibold text-lg">ระบบสารสนเทศเพื่อการบริหารสินเชื่อ</div>
             </div>
 
-            <form onsubmit="event.preventDefault(); loginSuccess();" class="space-y-5">
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อผู้ใช้</label>
-                    <input type="text" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 transition">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">รหัสผ่าน</label>
-                    <input type="password" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 transition">
-                </div>
-                <button type="submit" class="w-full bg-blue-900 text-white py-2.5 rounded-lg font-medium hover:bg-blue-950 transition shadow-sm">
-                    เข้าสู่ระบบ
+            <div id="borrowerLoginForm" class="space-y-4">
+                <button onclick="loginWithGoogle()" class="w-full bg-white border border-slate-300 text-slate-700 py-3 rounded-lg font-medium hover:bg-slate-50 transition flex items-center justify-center gap-3 shadow-sm">
+                    <i class="fa-brands fa-google text-red-500 text-lg"></i> ลงทะเบียน/เข้าสู่ระบบด้วย Google
                 </button>
-            </form>
-
-            <div class="relative my-6">
-                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
-                <div class="relative flex justify-center text-sm"><span class="bg-white px-2 text-slate-400">หรือดำเนินการต่อด้วย</span></div>
-            </div>
-
-            <div class="space-y-3">
-                <button onclick="registerWithGoogle()" class="w-full border border-slate-200 text-slate-700 py-2.5 rounded-lg font-medium hover:bg-slate-50 transition flex items-center justify-center gap-2">
-                    <i class="fa-brands fa-google text-red-500"></i> ลงทะเบียนด้วย Google
-                </button>
-                <div class="flex justify-end pt-2">
-                    <button onclick="officerLogin()" class="text-sm text-blue-800 hover:underline font-medium">
-                        <i class="fa-solid fa-user-shield mr-1"></i> สำหรับเจ้าหน้าที่
+                <div class="flex justify-center pt-4">
+                    <button onclick="toggleLoginMode('officer')" class="text-sm text-blue-900 hover:underline font-medium">
+                        <i class="fa-solid fa-user-shield mr-1"></i> สำหรับเจ้าหน้าที่พัฒนาระบบ
                     </button>
                 </div>
+            </div>
+
+            <div id="officerLoginForm" class="space-y-4 hidden">
+                <h3 class="font-bold text-slate-800 text-center"><i class="fa-solid fa-lock text-amber-600"></i> เข้าสู่ระบบสำหรับเจ้าหน้าที่</h3>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">ชื่อผู้ใช้ (Username)</label>
+                    <input type="text" id="offUser" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-900 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">รหัสผ่าน (Password)</label>
+                    <input type="password" id="offPass" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-900 outline-none">
+                </div>
+                <button onclick="verifyOfficer()" class="w-full bg-blue-950 text-white py-2.5 rounded-lg hover:bg-blue-900 transition">เข้าสู่ระบบปฏิบัติงาน</button>
+                <button onclick="toggleLoginMode('borrower')" class="w-full text-center text-sm text-slate-500 hover:underline">กลับไปหน้าผู้กู้</button>
             </div>
         </div>
     </div>
 
-    <div id="borrowerDashboard" class="hidden min-h-screen flex flex-col">
-        <nav class="bg-blue-900 text-white px-6 py-4 shadow-md flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <span class="text-2xl font-bold tracking-wider">e-LIS</span>
-                <span class="text-xs bg-blue-800 px-2 py-0.5 rounded border border-blue-700 text-slate-200">ผู้กู้</span>
+    <div id="borrowerDashboardView" class="hidden p-6 max-w-6xl mx-auto space-y-8">
+        <section>
+            <h2 class="text-xl font-bold text-blue-950 mb-4"><i class="fa-solid fa-layer-group text-amber-500"></i> รายการสินเชื่อที่เปิดให้ยื่นคำขอ</h2>
+            <div id="loanContainer" class="grid md:grid-cols-2 gap-6"></div>
+        </section>
+
+        <section class="bg-white border p-6 rounded-xl shadow-sm">
+            <h2 class="text-xl font-bold text-blue-950 mb-6"><i class="fa-solid fa-clock-rotate-left"></i> สถานะและประวัติการขอยื่นสินเชื่อของคุณ</h2>
+            <div id="userApplicationsContainer" class="space-y-6"></div>
+        </section>
+    </div>
+
+    <div id="officerDashboardView" class="hidden p-6 max-w-7xl mx-auto space-y-8">
+        <div class="flex flex-wrap justify-between items-center gap-4 bg-white p-4 rounded-xl border">
+            <div class="flex items-center gap-3">
+                <span class="font-bold">ตัวกรองย้อนหลัง:</span>
+                <input type="date" id="filterDate" class="border px-2 py-1 rounded text-sm">
+                <button onclick="renderOfficerDashboard()" class="bg-slate-700 text-white px-3 py-1 text-sm rounded hover:bg-slate-800">กรองข้อมูล</button>
             </div>
-            <div class="flex items-center gap-4">
-                <span class="text-sm"><i class="fa-solid fa-user mr-2"></i>คุณ สมชาย ใจดี</span>
-                <button onclick="logout()" class="text-sm bg-red-700 hover:bg-red-800 px-3 py-1.5 rounded-lg transition">
-                    <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
-                </button>
+            <div class="flex gap-2">
+                <button onclick="exportData('PDF')" class="bg-red-700 text-white px-3 py-1.5 text-sm rounded hover:bg-red-800"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+                <button onclick="exportData('Word')" class="bg-blue-700 text-white px-3 py-1.5 text-sm rounded hover:bg-blue-800"><i class="fa-solid fa-file-word"></i> Export Word</button>
+                <button onclick="openCreateLoanModal()" class="bg-green-700 text-white px-4 py-1.5 text-sm rounded font-bold hover:bg-green-800"><i class="fa-solid fa-plus"></i> เพิ่มรายการสินเชื่อใหม่</button>
             </div>
-        </nav>
+        </div>
 
-        <main class="flex-1 p-6 max-w-6xl w-full mx-auto space-y-10">
-            
-            <section>
-                <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <span class="w-2 h-6 bg-blue-900 rounded"></span> สินเชื่อที่เปิดให้ยื่นคำขอ
-                </h2>
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-start mb-2">
-                                <span class="text-xs font-bold uppercase tracking-wider bg-green-100 text-green-800 px-2.5 py-1 rounded-full">เปิดรับคำขอ</span>
-                                <span class="text-slate-400 text-sm">รหัส: LN-2026-001</span>
-                            </div>
-                            <h3 class="text-lg font-bold text-slate-800 mb-1">สินเชื่อเพื่อการกู้ชีพและฟื้นฟูธุรกิจรายย่อย</h3>
-                            <p class="text-slate-500 text-sm mb-4">วงเงินสูงสุด <span class="text-blue-900 font-bold text-base">50,000 บาท</span></p>
-                        </div>
-                        <div class="flex items-center justify-between pt-4 border-t border-slate-100">
-                            <button onclick="viewLoanDetails()" class="text-sm text-blue-900 font-medium hover:underline">ดูรายละเอียด</button>
-                            <button onclick="applyLoan()" class="bg-blue-900 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-950 transition">ยื่นสินเชื่อ</button>
-                        </div>
-                    </div>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 text-center">
+                <div class="text-xs text-amber-800 font-bold">รออัปเดตสถานะ</div>
+                <div class="text-2xl font-bold text-amber-900 mt-1" id="count-1">0</div>
+            </div>
+            <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 text-center">
+                <div class="text-xs text-blue-800 font-bold">กำลังตรวจสอบ</div>
+                <div class="text-2xl font-bold text-blue-900 mt-1" id="count-2">0</div>
+            </div>
+            <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200 text-center">
+                <div class="text-xs text-emerald-800 font-bold">อนุมัติแล้ว</div>
+                <div class="text-2xl font-bold text-emerald-900 mt-1" id="count-4-app">0</div>
+            </div>
+            <div class="bg-rose-50 p-4 rounded-xl border border-rose-200 text-center">
+                <div class="text-xs text-rose-800 font-bold">ไม่อนุมัติ</div>
+                <div class="text-2xl font-bold text-rose-900 mt-1" id="count-4-rej">0</div>
+            </div>
+            <div class="bg-purple-50 p-4 rounded-xl border border-purple-200 text-center">
+                <div class="text-xs text-purple-800 font-bold">รอตรวจสอบอีกครั้ง</div>
+                <div class="text-2xl font-bold text-purple-900 mt-1" id="count-3-overdue">0</div>
+            </div>
+        </div>
 
-                    <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-start mb-2">
-                                <span class="text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-500 px-2.5 py-1 rounded-full">ยังไม่เปิดใช้งาน</span>
-                                <span class="text-slate-400 text-sm">รหัส: LN-2026-002</span>
-                            </div>
-                            <h3 class="text-lg font-bold text-slate-700 mb-1">สินเชื่อเคหะสุขใจเพื่อข้าราชการรุ่นใหม่</h3>
-                            <p class="text-slate-400 text-sm mb-4">วงเงินสูงสุด <span class="font-bold text-base">500,000 บาท</span></p>
-                        </div>
-                        <div class="flex items-center justify-between pt-4 border-t border-slate-100">
-                            <span class="text-xs text-slate-400"><i class="fa-solid fa-calendar mr-1"></i> เริ่ม 01/08/2026</span>
-                            <button disabled class="bg-gray-300 text-gray-500 text-sm px-4 py-2 rounded-lg cursor-not-allowed">ยังไม่ถึงระยะเวลา</button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-                <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                    <span class="w-2 h-6 bg-blue-900 rounded"></span> ประวัติและสถานะการขอยื่นสินเชื่อล่าสุด
-                </h2>
-
-                <div class="border border-slate-100 rounded-lg p-4 bg-slate-50">
-                    <div class="flex justify-between items-center mb-4">
-                        <div>
-                            <span class="font-bold text-slate-700">เลขที่คำขอ: REQ-99402</span>
-                            <span class="text-sm text-slate-500 block">สินเชื่อเพื่อการกู้ชีพและฟื้นฟูฯ | ยื่นเมื่อ: 28 มิ.ย. 2026</span>
-                        </div>
-                        <span class="text-xs bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-medium">อยู่ระหว่างพิจารณา</span>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-slate-200">
-                        <div class="flex flex-col items-center text-center p-2">
-                            <div class="text-green-600 text-xl mb-1"><i class="fa-solid fa-circle-check"></i></div>
-                            <div class="text-xs font-bold text-slate-700">1. ส่งคำขอพิจารณาแล้ว</div>
-                            <div class="text-[11px] text-slate-400">28 มิ.ย. 2026 - 10:30 น.</div>
-                        </div>
-                        <div class="flex flex-col items-center text-center p-2 bg-blue-50/50 rounded-lg border border-blue-100">
-                            <div class="text-amber-500 text-xl mb-1"><i class="fa-solid fa-clock fa-spin"></i></div>
-                            <div class="text-xs font-bold text-blue-900">2. กำลังตรวจสอบและพิจารณา</div>
-                            <div class="text-[11px] text-slate-500">ระบบกำลังดำเนินการ</div>
-                        </div>
-                        <div class="flex flex-col items-center text-center p-2">
-                            <div class="text-red-500 text-xl mb-1"><i class="fa-solid fa-circle-xmark"></i></div>
-                            <div class="text-xs font-bold text-slate-500">3. ตรวจสอบเอกสารเสร็จสิ้น</div>
-                            <div class="text-[11px] text-red-500 font-medium">ภายใน 30 มิ.ย. (ระบบค้าง/รอตรวจซ้ำ)</div>
-                        </div>
-                        <div class="flex flex-col items-center text-center p-2 opacity-40">
-                            <div class="text-slate-400 text-xl mb-1"><i class="fa-solid fa-circle-minus"></i></div>
-                            <div class="text-xs font-bold text-slate-500">4. อนุมัติ / ไม่อนุมัติ</div>
-                            <div class="text-[11px] text-slate-400">รอขั้นตอนก่อนหน้า</div>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900">
-                        <i class="fa-solid fa-circle-info mr-1"></i> <strong>หมายเหตุล่าสุดจากเจ้าหน้าที่:</strong> เอกสารแนบหน้าบัญชีธนาคารไม่ชัดเจน ระบบกำลังเปิดให้เจ้าหน้าที่ตรวจสอบความถูกต้องอีกครั้งในรอบถัดไป
-                    </div>
-                </div>
-            </section>
-        </main>
+        <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-100 border-b text-slate-700 text-sm font-bold">
+                        <th class="p-4">เลขที่คำขอ</th>
+                        <th class="p-4">ผู้ขอกู้ / ข้อมูลเพิ่มเติม</th>
+                        <th class="p-4">สินเชื่อที่สมัคร</th>
+                        <th class="p-4">สถานะปัจจุบัน</th>
+                        <th class="p-4 text-center">การดำเนินการ</th>
+                    </tr>
+                </thead>
+                <tbody id="officerTableBody" class="divide-y text-sm"></tbody>
+            </table>
+        </div>
     </div>
 
     <script>
-        // ฟังก์ชันจำลองการผูกบัญชีด้วย Google
-        function registerWithGoogle() {
+        // 1. INITIAL SEED DATA (หากไม่มีข้อมูลใน LocalStorage ระบบจะจำลองข้อมูลเริ่มต้นให้)
+        const DEFAULT_LOANS = [
+            {
+                id: "LN-2026-001",
+                name: "สินเชื่อเยียวยาผู้ประกอบการรายย่อยภาคใต้",
+                limit: "150,000",
+                details: "ช่วยเหลือผู้ได้รับผลกระทบจากภัยธรรมชาติทางเศรษฐกิจ",
+                conditions: "เปิดบัญชีมาแล้วไม่ต่ำกว่า 6 เดือน",
+                startDate: "2026-01-01T00:00",
+                endDate: "2026-12-31T23:59",
+                gpsRequired: true,
+                customQuestion: "ธุรกิจของคุณประเภทใด?"
+            }
+        ];
+
+        let state = {
+            loans: JSON.parse(localStorage.getItem('elis_loans')) || DEFAULT_LOANS,
+            applications: JSON.parse(localStorage.getItem('elis_apps')) || [],
+            currentUser: null,
+            currentRole: null
+        };
+
+        function saveState() {
+            localStorage.setItem('elis_loans', JSON.stringify(state.loans));
+            localStorage.setItem('elis_apps', JSON.stringify(state.applications));
+        }
+
+        // 2. AUTHENTICATION LOGIC
+        function toggleLoginMode(mode) {
+            if(mode === 'officer') {
+                document.getElementById('borrowerLoginForm').classList.add('hidden');
+                document.getElementById('officerLoginForm').classList.remove('hidden');
+            } else {
+                document.getElementById('officerLoginForm').classList.add('hidden');
+                document.getElementById('borrowerLoginForm').classList.remove('hidden');
+            }
+        }
+
+        function loginWithGoogle() {
+            // จำลองการล็อกอินด้วย Google API
+            state.currentUser = "สมชาย เรืองปราชญ์ (Google User)";
+            state.currentRole = "borrower";
+            
             Swal.fire({
-                title: 'ผูกบัญชี Google สำเร็จ',
-                text: "ระบบได้ทำการลงทะเบียนด้วยอีเมล Google ของคุณเรียกว่าเรียบร้อยแล้ว คุณต้องการกรอกข้อมูลผู้กู้ตอนนี้เลยหรือไม่?",
+                title: 'ผูกบัญชี Google สำเร็จ!',
+                text: 'ระบบ e-LIS ได้รับข้อมูลการลงทะเบียนของคุณแล้ว คุณต้องการอัปเดตข้อมูลประวัติผู้กู้ทันทีหรือไม่?',
                 icon: 'success',
                 showCancelButton: true,
-                confirmButtonColor: '#1e3a8a',
+                confirmButtonColor: '#0f172a',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: 'กรอกข้อมูลส่วนตัว',
-                cancelButtonText: 'ข้ามไปแดชบอร์ดเลย'
+                confirmButtonText: 'กรอกข้อมูลตอนนี้เลย',
+                cancelButtonText: 'ข้ามไปหน้าหลักก่อน'
             }).then((result) => {
-                if (result.isConfirmed) {
-                    // จำลองว่าพาไปกรอกฟอร์มแล้วบันทึกสำเร็จ
+                if(result.isConfirmed) {
                     Swal.fire({
-                        title: 'บันทึกข้อมูลเรียบร้อย',
-                        text: 'ข้อมูลของคุณจะถูกนำไปใช้ในการยื่นสินเชื่ออัตโนมัติ',
-                        icon: 'success',
-                        confirmButtonColor: '#1e3a8a'
-                    }).then(() => {
-                        switchToDashboard();
+                        title: 'กรอกข้อมูลผู้กู้เบื้องต้น',
+                        html: `<input type="text" id="bAddr" class="swal2-input" placeholder="ที่อยู่ปัจจุบัน">
+                               <input type="text" id="bPhone" class="swal2-input" placeholder="เบอร์โทรศัพท์">`,
+                        confirmButtonText: 'บันทึกประวัติ',
+                        confirmButtonColor: '#0f172a',
+                        preConfirm: () => {
+                            return { addr: document.getElementById('bAddr').value, phone: document.getElementById('bPhone').value }
+                        }
+                    }).then((info) => {
+                        localStorage.setItem('user_profile', JSON.stringify(info.value));
+                        Swal.fire('บันทึกสำเร็จ', 'ข้อมูลของคุณถูกผูกเข้าระบบแล้ว', 'success');
+                        showDashboard();
                     });
                 } else {
-                    // กดข้าม พาไปแดชบอร์ดทันทีตามเงื่อนไข
-                    switchToDashboard();
+                    showDashboard();
                 }
             });
         }
 
-        // ฟังก์ชันจำลองการล็อกอินฝั่งเจ้าหน้าที่
-        function officerLogin() {
-            Swal.fire({
-                title: 'สลับไปยังโหมดเจ้าหน้าที่',
-                html: `<input type="text" id="swal-input1" class="swal2-input" placeholder="ชื่อผู้ใช้เจ้าหน้าที่">` +
-                      `<input type="password" id="swal-input2" class="swal2-input" placeholder="รหัสผ่าน">`,
-                focusConfirm: false,
-                confirmButtonColor: '#1e3a8a',
-                confirmButtonText: 'เข้าสู่ระบบทำงาน',
-                preConfirm: () => {
-                    return [
-                        document.getElementById('swal-input1').value,
-                        document.getElementById('swal-input2').value
-                    ]
-                }
-            }).then((result) => {
-                if(result.value) {
-                    Swal.fire({
-                        title: 'เข้าสู่ระบบสำเร็จ',
-                        text: 'ยินดีต้อนรับเข้าสู่ระบบจัดการ e-LIS หลังบ้าน',
-                        icon: 'info',
-                        confirmButtonColor: '#1e3a8a'
-                    });
-                }
-            });
+        function verifyOfficer() {
+            const user = document.getElementById('offUser').value;
+            const pass = document.getElementById('offPass').value;
+
+            // ตรวจสอบ Username และ Password ตามค่าที่ระบุอย่างเข้มงวด
+            if(user === "Sxxnga2011" && pass === "255428") {
+                state.currentUser = "คุณทรงกลด (เจ้าหน้าที่สินเชื่ออาวุโส)";
+                state.currentRole = "officer";
+                Swal.fire('ยินดีต้อนรับเจ้าหน้าที่', 'เข้าสู่ระบบ e-LIS เรียบร้อย', 'success').then(() => {
+                    showDashboard();
+                });
+            } else {
+                Swal.fire('เข้าสู่ระบบล้มเหลว', 'ชื่อผู้ใช้หรือรหัสผ่านระบบไม่ถูกต้อง', 'error');
+            }
         }
 
-        function loginSuccess() {
-            Swal.fire({
-                title: 'เข้าสู่ระบบสำเร็จ',
-                text: 'ยินดีต้อนรับกลับเข้าสู่ระบบ e-LIS',
-                icon: 'success',
-                timer: 1500,
-                showConfirmButton: false
-            }).then(() => {
-                switchToDashboard();
-            });
-        }
-
-        function switchToDashboard() {
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('borrowerDashboard').classList.remove('hidden');
+        function showDashboard() {
+            document.getElementById('loginView').classList.add('hidden');
+            document.getElementById('mainNav').classList.remove('hidden');
+            document.getElementById('userDisplay').innerText = state.currentUser;
+            
+            if(state.currentRole === 'officer') {
+                document.getElementById('roleBadge').innerText = "เจ้าหน้าที่ระดับระบบ";
+                document.getElementById('roleBadge').className = "text-xs bg-amber-600 px-2 py-0.5 rounded border border-amber-500 text-white";
+                document.getElementById('officerDashboardView').classList.remove('hidden');
+                renderOfficerDashboard();
+            } else {
+                document.getElementById('roleBadge').innerText = "ผู้กู้ยืมสินเชื่อ";
+                document.getElementById('roleBadge').className = "text-xs bg-blue-800 px-2 py-0.5 rounded border border-blue-700 text-white";
+                document.getElementById('borrowerDashboardView').classList.remove('hidden');
+                renderBorrowerDashboard();
+            }
         }
 
         function logout() {
-            document.getElementById('borrowerDashboard').classList.add('hidden');
-            document.getElementById('loginPage').classList.remove('hidden');
+            state.currentUser = null;
+            state.currentRole = null;
+            document.getElementById('mainNav').classList.add('hidden');
+            document.getElementById('borrowerDashboardView').classList.add('hidden');
+            document.getElementById('officerDashboardView').classList.add('hidden');
+            document.getElementById('loginView').classList.remove('hidden');
+            document.getElementById('offUser').value = "";
+            document.getElementById('offPass').value = "";
         }
 
-        function viewLoanDetails() {
+        // 3. BORROWER LOGIC: VIEW LOANS & APPLY
+        function renderBorrowerDashboard() {
+            const container = document.getElementById('loanContainer');
+            container.innerHTML = "";
+            const now = new Date();
+
+            state.loans.forEach((loan) => {
+                const start = new Date(loan.startDate);
+                const end = new Date(loan.endDate);
+                let btnHtml = "";
+                let cardClass = "bg-white border rounded-xl p-5 shadow-sm flex flex-col justify-between";
+
+                if (now < start) {
+                    btnHtml = `<button disabled class="bg-gray-300 text-gray-500 px-4 py-2 text-sm rounded cursor-not-allowed">ยังไม่ถึงระยะเวลา</button>`;
+                } else if (now > end) {
+                    // หากเกินเวลาปิดรับ แต่ยังไม่เกิน 24 ชม.
+                    const diffTime = Math.abs(now - end);
+                    const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
+                    if (diffHours <= 24) {
+                        btnHtml = `<button disabled class="bg-gray-300 text-gray-500 px-4 py-2 text-sm rounded cursor-not-allowed">หมดเขตการยื่นสินเชื่อ</button>`;
+                    } else {
+                        return; // หายไปหลังจากเลยกำหนด 24 ชั่วโมง
+                    }
+                } else {
+                    btnHtml = `<button onclick="submitApplicationFlow('${loan.id}')" class="bg-blue-950 text-white hover:bg-blue-900 px-4 py-2 text-sm rounded transition font-medium">ยื่นสินเชื่อ</button>`;
+                }
+
+                container.innerHTML += `
+                    <div class="${cardClass}">
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-bold">${loan.id}</span>
+                                <span class="text-sm font-semibold text-blue-900">วงเงิน: ${loan.limit} บาท</span>
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-base mb-1">${loan.name}</h3>
+                            <p class="text-slate-500 text-xs line-clamp-2">${loan.details}</p>
+                        </div>
+                        <div class="border-t pt-3 mt-4 flex justify-between items-center">
+                            <button onclick="viewLoanSpec('${loan.id}')" class="text-xs text-blue-800 hover:underline">เงื่อนไขการพิจารณา</button>
+                            ${btnHtml}
+                        </div>
+                    </div>
+                `;
+            });
+
+            renderUserTimeline();
+        }
+
+        function viewLoanSpec(loanId) {
+            const loan = state.loans.find(l => l.id === loanId);
             Swal.fire({
-                title: 'รายละเอียดสินเชื่อฟื้นฟูธุรกิจรายย่อย',
-                html: `<div class="text-left space-y-2 text-sm text-slate-700">
-                        <p><strong>เลขที่สินเชื่อ:</strong> LN-2026-001</p>
-                        <p><strong>วงเงินสูงสุด:</strong> 50,000 บาท</p>
-                        <p><strong>รายละเอียด:</strong> เพื่อช่วยเหลือผู้ประกอบการรายย่อยในการหมุนเวียนสภาพคล่องหลังจากสถานการณ์วิกฤตเศรษฐกิจ</p>
-                        <p><strong>เงื่อนไขการพิจารณา:</strong> ประกอบกิจการมาแล้วไม่น้อยกว่า 1 ปี และมีที่อยู่ปัจจุบันชัดเจน</p>
-                        <p><strong>วันที่หมดเขต:</strong> 31 ธันวาคม 2026 เวลา 23:59 น.</p>
-                        <p><strong>หมายเหตุ:</strong> ต้องให้สิทธิ์ในการเข้าถึงพิกัด GPS ณ วันที่กดยื่นเอกสาร</p>
+                title: loan.name,
+                html: `<div class="text-left text-sm space-y-2">
+                        <p><strong>รายละเอียด:</strong> ${loan.details}</p>
+                        <p><strong>เงื่อนไขหลัก:</strong> ${loan.conditions}</p>
+                        <p><strong>วันที่เปิด-ปิดยื่นคำขอ:</strong> ${loan.startDate} ถึง ${loan.endDate}</p>
                        </div>`,
-                icon: 'info',
-                confirmButtonColor: '#1e3a8a'
+                confirmButtonColor: '#0f172a'
             });
         }
 
-        function applyLoan() {
-            // จำลองกรณีขอสิทธิ์ GPS ตามที่ตั้งใจไว้
+        function submitApplicationFlow(loanId) {
+            const loan = state.loans.find(l => l.id === loanId);
+            
+            // เช็คว่าเคยกรอกข้อมูลประวัติไปยัง หากไม่มีให้กรอกเพิ่ม
+            const hasProfile = localStorage.getItem('user_profile');
+            let profilePromptHtml = "";
+            if(!hasProfile) {
+                profilePromptHtml = `<p class="text-xs text-red-500 mb-2">* ตรวจพบว่าคุณยังไม่ได้กรอกประวัติ กรุณากรอกที่อยู่ด้านล่างนี้</p>
+                                     <input type="text" id="appAddress" class="swal2-input !mt-1" placeholder="ที่อยู่ปัจจุบัน">`;
+            }
+
+            let gpsText = loan.gpsRequired ? `<p class="text-xs text-amber-600 font-bold"><i class="fa-solid fa-location-dot"></i> สินเชื่อนี้บังคับเปิดพิกัดตำแหน่ง GPS</p>` : '';
+
             Swal.fire({
-                title: 'ระบบต้องการเข้าถึงตำแหน่งปัจจุบัน',
-                text: 'การยื่นสินเชื่อนี้จำเป็นต้องตรวจสอบพิกัด GPS ปัจจุบันของคุณเพื่อป้องกันการทุจริต',
-                icon: 'warning',
+                title: 'กรอกข้อมูลขออนุมัติยื่นกู้',
+                html: `
+                    ${profilePromptHtml}
+                    ${gpsText}
+                    <div class="mt-3 text-left">
+                        <label class="text-xs font-bold text-slate-600">${loan.customQuestion}</label>
+                        <input type="text" id="appCustomAns" class="swal2-input !mt-1" placeholder="คำตอบของคุณ">
+                    </div>
+                `,
+                confirmButtonText: 'ยืนยันการส่งคำขอพิจารณา',
+                confirmButtonColor: '#0f172a',
                 showCancelButton: true,
-                confirmButtonColor: '#1e3a8a',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'อนุญาตการเข้าถึงพิกัด',
-                cancelButtonText: 'ปฏิเสธ'
+                preConfirm: () => {
+                    const customAns = document.getElementById('appCustomAns').value;
+                    const fallbackAddr = document.getElementById('appAddress') ? document.getElementById('appAddress').value : '';
+                    if(!customAns) { Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบถ้วน'); }
+                    return { customAns, fallbackAddr };
+                }
             }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'ส่งคำขอสินเชื่อสำเร็จ!',
-                        text: 'ระบบได้รับการส่งข้อมูลเรียบร้อย และทำการแจ้งเตือนผ่านอีเมลแล้ว',
-                        icon: 'success',
-                        confirmButtonColor: '#1e3a8a'
-                    });
-                } else {
-                    Swal.fire({
-                        title: 'ไม่สามารถยื่นสินเชื่อได้',
-                        text: 'หากไม่อนุญาตการเข้าถึงตำแหน่งปัจจุบัน ระบบจะไม่สามารถรับคำขอสินเชื่อนี้ได้',
-                        icon: 'error',
-                        confirmButtonColor: '#64748b'
-                    });
+                if(result.isConfirmed) {
+                    if(loan.gpsRequired) {
+                        // ดึงข้อมูลพิกัดจริงด้วย HTML5 Web API
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                const lat = position.coords.latitude;
+                                const lon = position.coords.longitude;
+                                executeApplicationSubmission(loan, result.value, `${lat}, ${lon}`);
+                            },
+                            (error) => {
+                                Swal.fire('ไม่สามารถยื่นสินเชื่อได้', 'ระบบถูกปฏิเสธการเข้าถึงพิกัด GPS ปัจจุบันของคุณ', 'error');
+                            }
+                        );
+                    } else {
+                        executeApplicationSubmission(loan, result.value, "ไม่ได้ระบุความต้องการ");
+                    }
                 }
             });
+        }
+
+        function executeApplicationSubmission(loan, formData, locationData) {
+            const newApp = {
+                appId: "REQ-" + Math.floor(10000 + Math.random() * 90000),
+                loanId: loan.id,
+                loanName: loan.name,
+                applicant: state.currentUser,
+                location: locationData,
+                customAnswer: formData.customAns,
+                status: 1, // 1: ส่งคำขอแล้ว, 2: กำลังตรวจ, 3: ตรวจเสร็จ, 4: อนุมัติ/ไม่อนุมัติ
+                statusStage3Type: 'pending', // 'pending' หรือ 'overdue' (กากบาท)
+                remarks: "ยื่นเอกสารเข้าระบบสำเร็จ",
+                dateApplied: new Date().toISOString().split('T')[0],
+                slaDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // SLA 2 วันถัดไป
+            };
+
+            state.applications.push(newApp);
+            saveState();
+            Swal.fire('ส่งคำขอสำเร็จ!', 'ระบบส่งอีเมลยืนยันไปยังบัญชี Google ของท่านเรียบร้อยแล้ว', 'success');
+            renderBorrowerDashboard();
+        }
+
+        function renderUserTimeline() {
+            const container = document.getElementById('userApplicationsContainer');
+            container.innerHTML = "";
+            const myApps = state.applications.filter(a => a.applicant === state.currentUser);
+
+            if(myApps.length === 0) {
+                container.innerHTML = `<p class="text-slate-400 text-center py-4">ไม่พบประวัติการขอยื่นสินเชื่อของคุณในขณะนี้</p>`;
+                return;
+            }
+
+            myApps.forEach(app => {
+                let s1 = "fa-solid fa-circle-check text-green-600";
+                let s2 = app.status >= 2 ? (app.status == 2 ? "fa-solid fa-clock fa-spin text-amber-500" : "fa-solid fa-circle-check text-green-600") : "fa-solid fa-circle text-slate-200";
+                let s3 = "fa-solid fa-circle text-slate-200";
+                if (app.status == 3) s3 = "fa-solid fa-clock fa-spin text-amber-500";
+                if (app.status > 3) s3 = "fa-solid fa-circle-check text-green-600";
+                if (app.statusStage3Type === 'overdue') s3 = "fa-solid fa-circle-xmark text-red-600";
+
+                let s4 = "fa-solid fa-circle text-slate-200";
+                if (app.status == 4) {
+                    s4 = app.remarks.includes("อนุมัติเสร็จสิ้น") ? "fa-solid fa-thumbs-up text-emerald-600" : "fa-solid fa-thumbs-down text-rose-600";
+                }
+
+                container.innerHTML += `
+                    <div class="border p-4 rounded-lg bg-slate-50 relative">
+                        <div class="flex justify-between text-xs font-bold text-slate-500 mb-4">
+                            <span>เลขที่ใบสมัคร: ${app.appId}</span>
+                            <span>วันที่ส่งคำขอ: ${app.dateApplied}</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-sm mb-4">${app.loanName}</h4>
+                        
+                        <div class="relative flex justify-between items-center max-w-xl mx-auto my-6">
+                            <div class="timeline-line"></div>
+                            <div class="z-10 bg-slate-50 px-2 flex flex-col items-center text-center">
+                                <i class="${s1} text-xl"></i>
+                                <span class="text-[11px] font-bold mt-1">1.ส่งคำขอแล้ว</span>
+                            </div>
+                            <div class="z-10 bg-slate-50 px-2 flex flex-col items-center text-center">
+                                <i class="${s2} text-xl"></i>
+                                <span class="text-[11px] font-bold mt-1">2.กำลังตรวจสอบ</span>
+                            </div>
+                            <div class="z-10 bg-slate-50 px-2 flex flex-col items-center text-center">
+                                <i class="${s3} text-xl"></i>
+                                <span class="text-[11px] font-bold mt-1">3.เสร็จสิ้นขั้นตอนตรวจ</span>
+                                <span class="text-[9px] text-red-500 block">ภายใน ${app.slaDate}</span>
+                            </div>
+                            <div class="z-10 bg-slate-50 px-2 flex flex-col items-center text-center">
+                                <i class="${s4} text-xl"></i>
+                                <span class="text-[11px] font-bold mt-1">4.ผลพิจารณา</span>
+                            </div>
+                        </div>
+                        <div class="bg-white border p-2.5 rounded text-xs text-slate-600 mt-2">
+                            <strong>บันทึกความคืบหน้า:</strong> ${app.remarks}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // 4. OFFICER LOGIC: MANAGE LOANS & STATUS
+        function renderOfficerDashboard() {
+            // คำนวณสรุปยอด Card Metrics
+            document.getElementById('count-1').innerText = state.applications.filter(a => a.status === 1).length;
+            document.getElementById('count-2').innerText = state.applications.filter(a => a.status === 2).length;
+            document.getElementById('count-4-app').innerText = state.applications.filter(a => a.status === 4 && a.remarks.includes("อนุมัติเสร็จสิ้น")).length;
+            document.getElementById('count-4-rej').innerText = state.applications.filter(a => a.status === 4 && !a.remarks.includes("อนุมัติเสร็จสิ้น")).length;
+            document.getElementById('count-3-overdue').innerText = state.applications.filter(a => a.statusStage3Type === 'overdue').length;
+
+            const tbody = document.getElementById('officerTableBody');
+            tbody.innerHTML = "";
+
+            let appsToRender = state.applications;
+            const filterVal = document.getElementById('filterDate').value;
+            if(filterVal) {
+                appsToRender = appsToRender.filter(a => a.dateApplied === filterVal);
+            }
+
+            if(appsToRender.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">ไม่มีข้อมูลคำขอการยื่นสินเชื่อในระบบ</td></tr>`;
+                return;
+            }
+
+            appsToRender.forEach(app => {
+                let statusText = "";
+                if(app.status === 1) statusText = "<span class='bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-xs'>รอตรวจสอบเอกสาร</span>";
+                if(app.status === 2) statusText = "<span class='bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs'><i class='fa-solid fa-spinner fa-spin'></i> พิจารณาเบื้องต้น</span>";
+                if(app.status === 3 && app.statusStage3Type === 'pending') statusText = "<span class='bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded text-xs'>เสร็จสิ้นรอสรุปผล</span>";
+                if(app.status === 3 && app.statusStage3Type === 'overdue') statusText = "<span class='bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-xs font-bold'><i class='fa-solid fa-circle-xmark'></i> เลยกำหนด SLA (รอตรวจซ้ำ)</span>";
+                if(app.status === 4) statusText = app.remarks.includes("อนุมัติเสร็จสิ้น") ? "<span class='bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-xs'>อนุมัติสินเชื่อสำเร็จ</span>" : "<span class='bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs'>ปฏิเสธคำขอ</span>";
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-4 font-bold text-slate-700">${app.appId}</td>
+                        <td class="p-4">
+                            <div class="font-medium">${app.applicant}</div>
+                            <div class="text-[11px] text-slate-500">พิกัด: ${app.location} | คำตอบเพิ่มเติม: ${app.customAnswer}</div>
+                        </td>
+                        <td class="p-4 text-xs font-medium text-slate-600">${app.loanName}</td>
+                        <td class="p-4">${statusText}</td>
+                        <td class="p-4 text-center">
+                            <button onclick="updateStatusFlow('${app.appId}')" class="bg-slate-800 text-white text-xs px-2.5 py-1 rounded hover:bg-slate-900 transition"><i class="fa-solid fa-pen-to-square"></i> จัดการสถานะ</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function updateStatusFlow(appId) {
+            const app = state.applications.find(a => a.appId === appId);
+            Swal.fire({
+                title: `จัดการคำขอ ${appId}`,
+                html: `
+                    <select id="updateStage" class="swal2-input">
+                        <option value="2" ${app.status==2?'selected':''}>ขั้นตอนที่ 2: กำลังตรวจสอบเอกสารและพิจารณา</option>
+                        <option value="3" ${app.status==3?'selected':''}>ขั้นตอนที่ 3: ตรวจสอบเอกสารเสร็จสิ้น</option>
+                        <option value="3-overdue">ขั้นตอนที่ 3: เลยกำหนดพิจารณา (ขึ้นกากบาทสีแดง)</option>
+                        <option value="4-approve">ขั้นตอนที่ 4: อนุมัติสินเชื่อ</option>
+                        <option value="4-reject">ขั้นตอนที่ 4: ไม่อนุมัติสินเชื่อ</option>
+                    </select>
+                    <input type="text" id="updateRemarks" class="swal2-input" placeholder="ใส่หมายเหตุแจ้งผู้กู้">
+                `,
+                confirmButtonText: 'บันทึกการเปลี่ยนแปลง',
+                confirmButtonColor: '#0f172a',
+                showCancelButton: true,
+                preConfirm: () => {
+                    return {
+                        stage: document.getElementById('updateStage').value,
+                        remarks: document.getElementById('updateRemarks').value
+                    }
+                }
+            }).then((result) => {
+                if(result.isConfirmed) {
+                    const data = result.value;
+                    if(data.stage === "3-overdue") {
+                        app.status = 3;
+                        app.statusStage3Type = 'overdue';
+                        app.remarks = data.remarks || "ระบบตรวจพบความล่าช้า ได้แจ้งเจ้าหน้าที่เข้าตรวจสอบซ้ำความถูกต้องเอกสาร";
+                    } else if(data.stage === "4-approve") {
+                        app.status = 4;
+                        app.remarks = "[อนุมัติเสร็จสิ้น] " + (data.remarks || "ผ่านเกณฑ์การพิจารณาสินเชื่อสารสนเทศ");
+                    } else if(data.stage === "4-reject") {
+                        app.status = 4;
+                        app.remarks = "[ไม่อนุมัติ] " + (data.remarks || "เอกสารไม่ผ่านเกณฑ์เงื่อนไขของโครงการ");
+                    } else {
+                        app.status = parseInt(data.stage);
+                        app.statusStage3Type = 'pending';
+                        app.remarks = data.remarks || "เจ้าหน้าที่ปรับปรุงสถานะเอกสารตามรอบเวลา";
+                    }
+                    saveState();
+                    Swal.fire('อัปเดตสถานะเสร็จสิ้น', 'ข้อมูลถูกส่งอัปเดตเรียลไทม์ไปยังระบบไทม์ไลน์แล้ว', 'success');
+                    renderOfficerDashboard();
+                }
+            });
+        }
+
+        function openCreateLoanModal() {
+            Swal.fire({
+                title: 'สร้างโครงการสินเชื่อใหม่ (e-LIS Builder)',
+                html: `
+                    <div class="text-left space-y-2 text-xs">
+                        <input type="text" id="newLoanName" class="swal2-input !m-1 w-full" placeholder="ชื่อสินเชื่อ">
+                        <input type="text" id="newLoanLimit" class="swal2-input !m-1 w-full" placeholder="วงเงินสินเชื่อ">
+                        <textarea id="newLoanDetail" class="w-full border p-2 rounded mt-2" placeholder="รายละเอียดโครงการ..."></textarea>
+                        <input type="text" id="newLoanCond" class="swal2-input !m-1 w-full" placeholder="เงื่อนไขการพิจารณา">
+                        <label class="block font-bold pt-2">วันที่เริ่มเปิดยื่น:</label>
+                        <input type="datetime-local" id="newLoanStart" class="border p-2 rounded w-full">
+                        <label class="block font-bold pt-2">วันที่หมดเขตยื่นสินเชื่อ:</label>
+                        <input type="datetime-local" id="newLoanEnd" class="border p-2 rounded w-full">
+                        <div class="pt-2 flex items-center gap-2">
+                            <input type="checkbox" id="newLoanGps"> <label for="newLoanGps" class="font-bold">ต้องระบุตำแหน่งพิกัด GPS ปัจจุบัน</label>
+                        </div>
+                        <input type="text" id="newLoanQ" class="swal2-input !m-1 w-full" placeholder="คำถามเพิ่มเติมแบบฟอร์ม (เหมือน Google Form)">
+                    </div>
+                `,
+                confirmButtonText: 'สร้างรายการสินเชื่อ',
+                confirmButtonColor: '#15803d',
+                showCancelButton: true,
+                preConfirm: () => {
+                    return {
+                        name: document.getElementById('newLoanName').value,
+                        limit: document.getElementById('newLoanLimit').value,
+                        details: document.getElementById('newLoanDetail').value,
+                        cond: document.getElementById('newLoanCond').value,
+                        start: document.getElementById('newLoanStart').value,
+                        end: document.getElementById('newLoanEnd').value,
+                        gps: document.getElementById('newLoanGps').checked,
+                        q: document.getElementById('newLoanQ').value
+                    }
+                }
+            }).then((result) => {
+                if(result.isConfirmed) {
+                    const d = result.value;
+                    const newId = "LN-2026-00" + (state.loans.length + 1);
+                    state.loans.push({
+                        id: newId, name: d.name, limit: d.limit, details: d.details,
+                        conditions: d.cond, startDate: d.start, endDate: d.end, gpsRequired: d.gps, customQuestion: d.q
+                    });
+                    saveState();
+                    Swal.fire('สร้างสินเชื่อเรียบร้อย', `รหัสสินเชื่อแบบรันอัตโนมัติของคุณคือ: ${newId}`, 'success');
+                    renderOfficerDashboard();
+                }
+            });
+        }
+
+        function exportData(type) {
+            Swal.fire('ดำเนินการดาวน์โหลด', `ระบบได้ดำเนินการจัดเตรียมเอกสารสรุปยอดและส่งออกไฟล์ในรูปแบบ ${type} เรียบร้อยแล้ว`, 'success');
         }
     </script>
 </body>
