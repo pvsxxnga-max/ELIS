@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e-LIS | ระบบสารสนเทศเพื่อการบริหารสินเชื่อ</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Sarabun', 'sans-serif'] },
+                    colors: { primary: '#1e3a8a', secondary: '#0f172a' } // โทนสีกรมท่า ทางการ
+                }
+            }
+        }
+    </script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; }
+        .stepper-line { width: 2px; background-color: #cbd5e1; position: absolute; left: 15px; top: 30px; bottom: 0; z-index: -1; }
+    </style>
+</head>
+<body class="text-gray-800 h-screen flex flex-col">
+
+    <nav class="bg-primary text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold"><i class="fa-solid fa-building-columns mr-2"></i>e-LIS</h1>
+            <div id="nav-actions" class="hidden">
+                <button onclick="logout()" class="text-sm bg-red-600 hover:bg-red-700 px-4 py-2 rounded shadow transition"><i class="fa-solid fa-right-from-bracket mr-2"></i>ออกจากระบบ</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow container mx-auto p-4 flex justify-center items-center">
+
+        <div id="page-login" class="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-3xl font-bold text-center text-primary mb-6">เข้าสู่ระบบ</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">ชื่อผู้ใช้</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3 top-3 text-gray-400"></i>
+                        <input type="text" class="w-full border border-gray-300 rounded pl-10 pr-3 py-2 focus:outline-none focus:border-primary" placeholder="กรอกชื่อผู้ใช้">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">รหัสผ่าน</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3 top-3 text-gray-400"></i>
+                        <input type="password" class="w-full border border-gray-300 rounded pl-10 pr-3 py-2 focus:outline-none focus:border-primary" placeholder="กรอกรหัสผ่าน">
+                    </div>
+                </div>
+                <button onclick="login('borrower')" class="w-full bg-primary text-white font-bold py-2 rounded hover:bg-blue-800 transition shadow">เข้าสู่ระบบ</button>
+                
+                <div class="flex items-center my-4">
+                    <hr class="flex-grow border-gray-300">
+                    <span class="px-3 text-sm text-gray-500">หรือ</span>
+                    <hr class="flex-grow border-gray-300">
+                </div>
+
+                <button onclick="registerGoogle()" class="w-full bg-white border border-gray-300 text-gray-700 font-bold py-2 rounded hover:bg-gray-50 transition shadow flex justify-center items-center">
+                    <i class="fa-brands fa-google text-red-500 mr-2"></i> ลงทะเบียน / เข้าสู่ระบบด้วย Google
+                </button>
+                
+                <div class="mt-6 text-center">
+                    <button onclick="showStaffLogin()" class="text-sm text-primary hover:underline"><i class="fa-solid fa-user-tie mr-1"></i>สำหรับเจ้าหน้าที่</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-borrower" class="w-full max-w-6xl hidden h-full py-4">
+            <h2 class="text-3xl font-bold text-primary mb-6"><i class="fa-solid fa-home mr-2"></i>แดชบอร์ดผู้กู้</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-xl font-bold mb-4 text-gray-700"><i class="fa-solid fa-hand-holding-dollar mr-2"></i>สินเชื่อที่เปิดให้บริการ</h3>
+                    
+                    <div class="bg-white p-5 rounded-lg shadow border-l-4 border-primary mb-4 cursor-pointer hover:shadow-md transition" onclick="showLoanDetails()">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="text-lg font-bold text-primary">สินเชื่อพัฒนาธุรกิจ SMEs</h4>
+                                <p class="text-sm text-gray-600">วงเงินสูงสุด: 1,000,000 บาท</p>
+                                <p class="text-xs text-red-500 mt-1"><i class="fa-regular fa-calendar-xmark mr-1"></i>หมดเขต: 31 ธ.ค. 2026</p>
+                            </div>
+                            <button onclick="event.stopPropagation(); applyLoan()" class="bg-green-600 text-white text-sm px-3 py-1 rounded shadow hover:bg-green-700">ยื่นสินเชื่อ</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-100 p-5 rounded-lg shadow border-l-4 border-gray-400 mb-4 opacity-75">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="text-lg font-bold text-gray-700">สินเชื่อฉุกเฉิน</h4>
+                                <p class="text-sm text-gray-600">วงเงินสูงสุด: 50,000 บาท</p>
+                                <p class="text-xs text-gray-500 mt-1"><i class="fa-regular fa-clock mr-1"></i>เปิดรับ: 1 ส.ค. 2026</p>
+                            </div>
+                            <button class="bg-gray-400 text-white text-sm px-3 py-1 rounded cursor-not-allowed">ยังไม่ถึงระยะเวลา</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-bold mb-4 text-gray-700"><i class="fa-solid fa-clock-rotate-left mr-2"></i>สถานะการยื่นสินเชื่อล่าสุด</h3>
+                    <div class="bg-white p-6 rounded-lg shadow relative z-0">
+                        <div class="stepper-line"></div>
+                        
+                        <div class="flex items-start mb-6 relative">
+                            <div class="w-8 h-8 rounded-full bg-green-500 text-white flex justify-center items-center z-10 shadow"><i class="fa-solid fa-check"></i></div>
+                            <div class="ml-4">
+                                <h4 class="font-bold text-gray-800">1. ส่งคำขอพิจารณาแล้ว</h4>
+                                <p class="text-xs text-gray-500">10 มิ.ย. 2026 09:00 น.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start mb-6 relative">
+                            <div class="w-8 h-8 rounded-full bg-green-500 text-white flex justify-center items-center z-10 shadow"><i class="fa-solid fa-check"></i></div>
+                            <div class="ml-4">
+                                <h4 class="font-bold text-gray-800">2. กำลังตรวจสอบเอกสารและพิจารณา</h4>
+                                <p class="text-xs text-gray-500">11 มิ.ย. 2026 14:30 น.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start mb-6 relative">
+                            <div class="w-8 h-8 rounded-full bg-red-500 text-white flex justify-center items-center z-10 shadow"><i class="fa-solid fa-times"></i></div>
+                            <div class="ml-4">
+                                <h4 class="font-bold text-red-600">3. ตรวจสอบเอกสารเสร็จสิ้น (รอดำเนินการใหม่)</h4>
+                                <p class="text-xs text-red-500">กำหนดการเดิม: 15 มิ.ย. 2026</p>
+                                <p class="text-sm text-gray-600 bg-red-50 p-2 rounded mt-1 border border-red-200"><i class="fa-solid fa-circle-exclamation text-red-500 mr-1"></i>เกินระยะเวลาที่กำหนด เจ้าหน้าที่กำลังตรวจสอบอีกครั้ง</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start relative">
+                            <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex justify-center items-center z-10 border-2 border-gray-300"><i class="fa-regular fa-clock"></i></div>
+                            <div class="ml-4">
+                                <h4 class="font-bold text-gray-400">4. อนุมัติ / ไม่อนุมัติ</h4>
+                                <p class="text-xs text-gray-400">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-staff" class="w-full max-w-6xl hidden h-full py-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold text-secondary"><i class="fa-solid fa-user-tie mr-2"></i>ระบบจัดการสำหรับเจ้าหน้าที่</h2>
+                <div class="space-x-2">
+                    <button onclick="exportData('PDF')" class="bg-red-500 text-white px-3 py-1 rounded shadow hover:bg-red-600"><i class="fa-solid fa-file-pdf mr-1"></i>ออกรายงาน PDF</button>
+                    <button class="bg-primary text-white px-3 py-1 rounded shadow hover:bg-blue-800" onclick="document.getElementById('modal-add-loan').classList.remove('hidden')"><i class="fa-solid fa-plus mr-1"></i>สร้างสินเชื่อใหม่</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 text-center"><h4 class="text-blue-800 font-bold">รออัพเดท</h4><p class="text-2xl font-black">12</p></div>
+                <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200 text-center"><h4 class="text-yellow-800 font-bold">กำลังตรวจสอบ</h4><p class="text-2xl font-black">8</p></div>
+                <div class="bg-green-50 p-4 rounded-lg border border-green-200 text-center"><h4 class="text-green-800 font-bold">อนุมัติแล้ว</h4><p class="text-2xl font-black">45</p></div>
+                <div class="bg-gray-100 p-4 rounded-lg border border-gray-300 text-center"><h4 class="text-gray-800 font-bold">ไม่อนุมัติ</h4><p class="text-2xl font-black">5</p></div>
+                <div class="bg-red-50 p-4 rounded-lg border border-red-200 text-center"><h4 class="text-red-800 font-bold">รอตรวจสอบอีกครั้ง</h4><p class="text-2xl font-black text-red-600">3</p></div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
+                    <h3 class="font-bold">รายการคำขอสินเชื่อ</h3>
+                    <input type="date" class="border rounded px-2 py-1 text-sm">
+                </div>
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-600 text-sm">
+                            <th class="p-3 border-b">เลขที่อ้างอิง</th>
+                            <th class="p-3 border-b">ชื่อผู้กู้</th>
+                            <th class="p-3 border-b">สินเชื่อ</th>
+                            <th class="p-3 border-b">สถานะ</th>
+                            <th class="p-3 border-b">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-3 border-b">REQ-2606001</td>
+                            <td class="p-3 border-b">นาย ทดสอบ ระบบดี</td>
+                            <td class="p-3 border-b">สินเชื่อธุรกิจ</td>
+                            <td class="p-3 border-b"><span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">กำลังตรวจสอบ</span></td>
+                            <td class="p-3 border-b">
+                                <button onclick="updateStatus()" class="text-primary hover:underline text-sm"><i class="fa-solid fa-pen-to-square"></i> อัพเดทสถานะ</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="modal-add-loan" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50 flex">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 relative">
+            <button onclick="document.getElementById('modal-add-loan').classList.add('hidden')" class="absolute top-4 right-4 text-gray-500 hover:text-red-500"><i class="fa-solid fa-times text-xl"></i></button>
+            <h2 class="text-2xl font-bold text-primary mb-4"><i class="fa-solid fa-file-circle-plus mr-2"></i>สร้างรายการสินเชื่อใหม่</h2>
+            
+            <form class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-bold mb-1">1. ชื่อสินเชื่อ</label><input type="text" class="w-full border rounded p-2" required></div>
+                    <div><label class="block text-sm font-bold mb-1">2. รหัสสินเชื่อ (Auto-run)</label><input type="text" value="LN-2026-0001" disabled class="w-full border bg-gray-100 rounded p-2 text-gray-500"></div>
+                </div>
+                
+                <div><label class="block text-sm font-bold mb-1">3. วงเงินพิจารณา (บาท)</label><input type="number" class="w-full border rounded p-2"></div>
+                <div><label class="block text-sm font-bold mb-1">4. รายละเอียดสินเชื่อ</label><textarea class="w-full border rounded p-2" rows="2"></textarea></div>
+                <div><label class="block text-sm font-bold mb-1">5. เงื่อนไขการพิจารณา</label><textarea class="w-full border rounded p-2" rows="2"></textarea></div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-bold mb-1">6. วัน/เวลา ที่เริ่มเปิดยื่น</label><input type="datetime-local" class="w-full border rounded p-2"></div>
+                    <div><label class="block text-sm font-bold mb-1">7. วัน/เวลา หมดเขต (หายไปใน 24ชม.)</label><input type="datetime-local" class="w-full border rounded p-2"></div>
+                </div>
+
+                <div class="border p-4 rounded bg-blue-50">
+                    <label class="block text-sm font-bold mb-2">8. อัพโหลด PDF หนังสือขออนุญาตเพิ่มสินเชื่อ</label>
+                    <div class="flex items-center space-x-4">
+                        <input type="file" accept=".pdf" class="border p-1 bg-white rounded text-sm w-full">
+                        <a href="https://drive.google.com/file/d/13mCe6T6Q4pNbd3vrX6t3aYcYlAS6QrxC/view?usp=drivesdk" target="_blank" class="whitespace-nowrap bg-gray-800 text-white text-sm px-4 py-2 rounded hover:bg-gray-900"><i class="fa-solid fa-download mr-1"></i>ดาวน์โหลดฟอร์ม</a>
+                    </div>
+                </div>
+
+                <div class="border p-4 rounded border-dashed border-gray-400">
+                    <label class="block text-sm font-bold mb-2">9. ข้อมูลที่ต้องการเพิ่มเติมจากผู้กู้ (Dynamic Fields)</label>
+                    <div class="flex flex-wrap gap-2 mb-2">
+                        <label class="flex items-center space-x-1"><input type="checkbox" checked> <span>พิกัด GPS ปัจจุบัน</span></label>
+                        <label class="flex items-center space-x-1"><input type="checkbox"> <span>ที่อยู่ปัจจุบัน</span></label>
+                        <label class="flex items-center space-x-1"><input type="checkbox"> <span>อัพโหลดรูปภาพถ่ายสถานประกอบการ</span></label>
+                    </div>
+                    <button type="button" class="text-primary text-sm font-bold"><i class="fa-solid fa-plus-circle"></i> เพิ่มคำถาม (แบบ Dropdown, Text)</button>
+                </div>
+
+                <div class="text-right pt-4 border-t">
+                    <button type="button" onclick="createLoanSuccess()" class="bg-primary text-white font-bold px-6 py-2 rounded shadow hover:bg-blue-800"><i class="fa-solid fa-save mr-2"></i>สร้างสินเชื่อ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ฟังก์ชันซ่อนทุกหน้า
+        function hideAll() {
+            document.getElementById('page-login').classList.add('hidden');
+            document.getElementById('page-borrower').classList.add('hidden');
+            document.getElementById('page-staff').classList.add('hidden');
+            document.getElementById('nav-actions').classList.remove('hidden');
+        }
+
+        // แจ้งเตือนลงทะเบียนผ่าน Google
+        function registerGoogle() {
+            Swal.fire({
+                title: 'เชื่อมต่อบัญชี Google',
+                text: "กำลังส่งคำขอไปยังระบบยืนยันตัวตน...",
+                icon: 'info',
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+                Swal.fire({
+                    title: 'เชื่อมต่อสำเร็จ',
+                    text: 'กรุณากรอกข้อมูลส่วนตัวเพิ่มเติม หรือข้ามเพื่อไปที่แดชบอร์ด',
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonText: 'กรอกข้อมูล',
+                    cancelButtonText: 'ข้ามไปหน้าแดชบอร์ด'
+                }).then((result) => {
+                    login('borrower');
+                });
+            });
+        }
+
+        // ฟังก์ชันเข้าสู่ระบบ
+        function login(role) {
+            hideAll();
+            if(role === 'borrower') {
+                document.getElementById('page-borrower').classList.remove('hidden');
+            } else if (role === 'staff') {
+                document.getElementById('page-staff').classList.remove('hidden');
+            }
+        }
+
+        function showStaffLogin() {
+            Swal.fire({
+                title: 'สำหรับเจ้าหน้าที่',
+                html: `
+                    <input type="text" id="staff-user" class="swal2-input" placeholder="ชื่อผู้ใช้">
+                    <input type="password" id="staff-pass" class="swal2-input" placeholder="รหัสผ่าน">
+                `,
+                confirmButtonText: 'เข้าสู่ระบบ',
+                focusConfirm: false,
+                preConfirm: () => {
+                    login('staff');
+                }
+            });
+        }
+
+        function logout() {
+            document.getElementById('nav-actions').classList.add('hidden');
+            hideAll();
+            document.getElementById('page-login').classList.remove('hidden');
+        }
+
+        // ฟังก์ชันจำลองเมื่อผู้กู้กดยื่นสินเชื่อ (GPS)
+        function applyLoan() {
+            Swal.fire({
+                title: 'อนุญาตการเข้าถึงตำแหน่งที่ตั้ง',
+                text: "สินเชื่อนี้ต้องการพิกัด GPS ปัจจุบันของคุณ เพื่อใช้ประกอบการพิจารณา",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'อนุญาตและยื่นสินเชื่อ',
+                cancelButtonText: 'ยกเลิก',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire('ยื่นคำขอสำเร็จ!', 'ระบบได้รับข้อมูลของคุณแล้ว', 'success');
+                }
+            });
+        }
+
+        // ฟังก์ชันจำลองแสดงรายละเอียดสินเชื่อ
+        function showLoanDetails() {
+            Swal.fire({
+                title: '<span class="text-primary text-xl">รายละเอียดสินเชื่อพัฒนาธุรกิจ SMEs</span>',
+                html: `
+                    <div class="text-left text-sm space-y-2">
+                        <p><b>เลขที่สินเชื่อ:</b> LN-26-SME-001</p>
+                        <p><b>วงเงินสูงสุด:</b> 1,000,000 บาท</p>
+                        <p><b>รายละเอียด:</b> เพื่อเสริมสภาพคล่องทางธุรกิจ...</p>
+                        <p><b>เงื่อนไข:</b> ดำเนินกิจการมาแล้วไม่ต่ำกว่า 1 ปี...</p>
+                        <p><b>วันหมดเขตยื่น:</b> 31 ธันวาคม 2026</p>
+                        <p class="text-red-500"><b>หมายเหตุ:</b> ต้องแนบเอกสารจดทะเบียนบริษัท</p>
+                    </div>
+                `,
+                confirmButtonText: 'ปิด'
+            });
+        }
+
+        // ฟังก์ชันฝั่งเจ้าหน้าที่
+        function createLoanSuccess() {
+            document.getElementById('modal-add-loan').classList.add('hidden');
+            Swal.fire('สร้างสำเร็จ!', 'รายการสินเชื่อถูกเพิ่มลงระบบ e-LIS เรียบร้อยแล้ว', 'success');
+        }
+
+        function updateStatus() {
+            Swal.fire({
+                title: 'อัพเดทสถานะ (หมายเหตุ)',
+                input: 'textarea',
+                inputLabel: 'กรอกหมายเหตุ (จะแสดงผลที่ผู้กู้)',
+                inputPlaceholder: 'เช่น ขอเอกสารสเตทเมนท์เดือนล่าสุดเพิ่มเติม...',
+                showCancelButton: true,
+                confirmButtonText: 'อัพเดท',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if(result.isConfirmed) {
+                    Swal.fire('บันทึกสำเร็จ!', 'สถานะถูกส่งไปยังผู้กู้ผ่านระบบและอีเมลแล้ว', 'success');
+                }
+            });
+        }
+
+        function exportData(type) {
+            Swal.fire('กำลังสร้างเอกสาร', `ระบบกำลังรวบรวมข้อมูลเพื่อส่งออกเป็น ${type}...`, 'info');
+        }
+    </script>
+</body>
+</html>
